@@ -97,8 +97,12 @@ public final class BackupFlowTest {
             public void run() {
                 Intent result = new Intent().setData(Uri.parse("content://backup-test/export.pvlb"));
                 activity.onActivityResult(MainActivity.REQUEST_EXPORT_BACKUP, MainActivity.RESULT_OK, result);
-                AlertDialog dialog = activity.getActiveBackupDialog();
-                assertNotNull(dialog);
+            }
+        });
+        final AlertDialog dialog = waitForActiveBackupDialog();
+        getInstrumentation().runOnMainSync(new Runnable() {
+            @Override
+            public void run() {
                 EditText password = dialog.findViewById(R.id.backup_password);
                 EditText confirmation = dialog.findViewById(R.id.backup_password_confirmation);
                 password.setText("first-password");
@@ -196,13 +200,39 @@ public final class BackupFlowTest {
             public void run() {
                 Intent result = new Intent().setData(Uri.fromFile(backup));
                 activity.onActivityResult(MainActivity.REQUEST_IMPORT_BACKUP, MainActivity.RESULT_OK, result);
-                AlertDialog dialog = activity.getActiveBackupDialog();
-                assertNotNull(dialog);
+            }
+        });
+        final AlertDialog dialog = waitForActiveBackupDialog();
+        getInstrumentation().runOnMainSync(new Runnable() {
+            @Override
+            public void run() {
                 EditText input = dialog.findViewById(R.id.backup_password);
                 input.setText(new String(password));
                 dialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick();
             }
         });
+    }
+
+    private AlertDialog waitForActiveBackupDialog() {
+        final AtomicReference<AlertDialog> found = new AtomicReference<AlertDialog>();
+        waitFor(new BackupFlowWaiter.Condition() {
+            @Override
+            public boolean isMet() {
+                final boolean[] showing = new boolean[] {false};
+                getInstrumentation().runOnMainSync(new Runnable() {
+                    @Override
+                    public void run() {
+                        AlertDialog dialog = activity.getActiveBackupDialog();
+                        if (dialog != null && dialog.isShowing()) {
+                            found.set(dialog);
+                            showing[0] = true;
+                        }
+                    }
+                });
+                return showing[0];
+            }
+        });
+        return found.get();
     }
 
     private AlertDialog waitForDialogContaining(final String expectedText) {
