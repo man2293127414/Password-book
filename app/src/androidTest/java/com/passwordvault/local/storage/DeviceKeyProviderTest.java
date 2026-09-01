@@ -1,7 +1,6 @@
 package com.passwordvault.local.storage;
 
-import android.test.AndroidTestCase;
-
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 import com.passwordvault.local.core.crypto.AesGcmCipher;
 import com.passwordvault.local.core.crypto.EncryptedPayload;
 
@@ -11,8 +10,16 @@ import java.util.Arrays;
 
 import javax.crypto.SecretKey;
 
-public final class DeviceKeyProviderTest extends AndroidTestCase {
-    public void testKeyIsNonExportableAndReusableAcrossProviderInstances() {
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+@RunWith(AndroidJUnit4.class)
+public final class DeviceKeyProviderTest {
+    @Test
+    public void keyIsNonExportableAndReusableAcrossProviderInstances() {
         SecretKey first = new DeviceKeyProvider().getOrCreate();
         SecretKey second = new DeviceKeyProvider().getOrCreate();
 

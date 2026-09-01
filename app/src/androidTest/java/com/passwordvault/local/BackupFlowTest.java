@@ -1,13 +1,17 @@
 package com.passwordvault.local;
 
 import android.app.AlertDialog;
+import android.app.Instrumentation;
 import android.content.Intent;
 import android.net.Uri;
-import android.test.ActivityInstrumentationTestCase2;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.rule.ActivityTestRule;
 
 import com.passwordvault.local.core.backup.BackupCrypto;
 import com.passwordvault.local.core.backup.BackupService;
@@ -32,29 +36,40 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.LongSupplier;
 import java.util.function.Supplier;
 
-public final class BackupFlowTest extends ActivityInstrumentationTestCase2<MainActivity> {
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+@RunWith(AndroidJUnit4.class)
+public final class BackupFlowTest {
     private static final char[] PASSWORD = "backup-password".toCharArray();
     private MainActivity activity;
     private PasswordVaultApplication application;
 
-    public BackupFlowTest() {
-        super(MainActivity.class);
-    }
+    @Rule
+    public final ActivityTestRule<MainActivity> activityRule =
+            new ActivityTestRule<MainActivity>(MainActivity.class, true, false);
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-        setActivityInitialTouchMode(true);
+    @Before
+    public void setUp() {
         VaultTestReset.closeApplicationVault(getInstrumentation().getTargetContext());
         getInstrumentation().getTargetContext().deleteDatabase("password_vault.db");
         seedCurrentVault();
-        activity = getActivity();
+        activity = activityRule.launchActivity(null);
         application = (PasswordVaultApplication) activity.getApplication();
         application.getLanSessionManager().stop();
     }
 
-    @Override
-    protected void tearDown() throws Exception {
+    @After
+    public void tearDown() {
         if (application != null) application.getLanSessionManager().stop();
         if (activity != null) {
             getInstrumentation().runOnMainSync(new Runnable() {
@@ -73,10 +88,10 @@ public final class BackupFlowTest extends ActivityInstrumentationTestCase2<MainA
         }
         VaultTestReset.closeApplicationVault(getInstrumentation().getTargetContext());
         getInstrumentation().getTargetContext().deleteDatabase("password_vault.db");
-        super.tearDown();
     }
 
-    public void testExportRequiresConfirmedBackupPassword() {
+    @Test
+    public void exportRequiresConfirmedBackupPassword() {
         getInstrumentation().runOnMainSync(new Runnable() {
             @Override
             public void run() {
@@ -95,7 +110,8 @@ public final class BackupFlowTest extends ActivityInstrumentationTestCase2<MainA
         });
     }
 
-    public void testCancelledFileSelectionDoesNotOpenBackupPasswordDialog() {
+    @Test
+    public void cancelledFileSelectionDoesNotOpenBackupPasswordDialog() {
         getInstrumentation().runOnMainSync(new Runnable() {
             @Override
             public void run() {
@@ -109,7 +125,8 @@ public final class BackupFlowTest extends ActivityInstrumentationTestCase2<MainA
         });
     }
 
-    public void testImportPreviewShowsCountsAndCancelPreservesCurrentVault() throws Exception {
+    @Test
+    public void importPreviewShowsCountsAndCancelPreservesCurrentVault() throws Exception {
         openImportWithPassword(createBackupFile(snapshot("imported"), PASSWORD), PASSWORD);
 
         final AlertDialog preview = waitForDialogContaining("备份包含 1 条密码记录、1 个分类和 1 个标签");
@@ -128,7 +145,8 @@ public final class BackupFlowTest extends ActivityInstrumentationTestCase2<MainA
                 application.getLanSessionManager().getState().getStatus());
     }
 
-    public void testConfirmedImportReplacesVaultAndStopsSharedPcSession() throws Exception {
+    @Test
+    public void confirmedImportReplacesVaultAndStopsSharedPcSession() throws Exception {
         LanSessionManager sessionManager = application.getLanSessionManager();
         sessionManager.start();
         openImportWithPassword(createBackupFile(snapshot("imported"), PASSWORD), PASSWORD);
@@ -150,7 +168,8 @@ public final class BackupFlowTest extends ActivityInstrumentationTestCase2<MainA
         });
     }
 
-    public void testWrongPasswordThroughActivityKeepsVaultAndPcSession() throws Exception {
+    @Test
+    public void wrongPasswordThroughActivityKeepsVaultAndPcSession() throws Exception {
         LanSessionManager sessionManager = application.getLanSessionManager();
         sessionManager.start();
         openImportWithPassword(createBackupFile(snapshot("imported"), PASSWORD),
@@ -283,5 +302,9 @@ public final class BackupFlowTest extends ActivityInstrumentationTestCase2<MainA
         return new VaultSnapshot(VaultSnapshot.CURRENT_SCHEMA_VERSION, 1L,
                 Collections.singletonList(credential), Collections.singletonList(category),
                 Collections.singletonList(tag));
+    }
+
+    private static Instrumentation getInstrumentation() {
+        return InstrumentationRegistry.getInstrumentation();
     }
 }

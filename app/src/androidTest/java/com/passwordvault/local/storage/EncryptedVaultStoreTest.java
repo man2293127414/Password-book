@@ -1,7 +1,9 @@
 package com.passwordvault.local.storage;
 
 import android.database.DatabaseUtils;
-import android.test.AndroidTestCase;
+
+import androidx.test.core.app.ApplicationProvider;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import com.passwordvault.local.VaultTestReset;
 import com.passwordvault.local.core.crypto.CryptoException;
@@ -19,27 +21,38 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 
-public final class EncryptedVaultStoreTest extends AndroidTestCase {
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+@RunWith(AndroidJUnit4.class)
+public final class EncryptedVaultStoreTest {
     private static final String ACCOUNT = "plain-account@example.test";
     private static final String PASSWORD = "plain-password-4871";
     private static final String NOTES = "plain-notes-must-never-reach-sqlite";
 
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-        VaultTestReset.closeApplicationVault(getContext());
-        getContext().deleteDatabase(VaultDatabase.DATABASE_NAME);
+    @Before
+    public void setUp() {
+        VaultTestReset.closeApplicationVault(ApplicationProvider.getApplicationContext());
+        ApplicationProvider.getApplicationContext().deleteDatabase(VaultDatabase.DATABASE_NAME);
     }
 
-    @Override
-    protected void tearDown() throws Exception {
-        VaultTestReset.closeApplicationVault(getContext());
-        getContext().deleteDatabase(VaultDatabase.DATABASE_NAME);
-        super.tearDown();
+    @After
+    public void tearDown() {
+        VaultTestReset.closeApplicationVault(ApplicationProvider.getApplicationContext());
+        ApplicationProvider.getApplicationContext().deleteDatabase(VaultDatabase.DATABASE_NAME);
     }
 
-    public void testEmptyDatabaseReturnsEmptySnapshot() {
-        EncryptedVaultStore store = new EncryptedVaultStore(getContext());
+    @Test
+    public void emptyDatabaseReturnsEmptySnapshot() {
+        EncryptedVaultStore store = new EncryptedVaultStore(ApplicationProvider.getApplicationContext());
         try {
             VaultSnapshot snapshot = store.read();
 
@@ -52,17 +65,18 @@ public final class EncryptedVaultStoreTest extends AndroidTestCase {
         }
     }
 
-    public void testSnapshotSurvivesStoreReopen() {
+    @Test
+    public void snapshotSurvivesStoreReopen() {
         VaultSnapshot expected = sampleSnapshot();
 
-        EncryptedVaultStore writer = new EncryptedVaultStore(getContext());
+        EncryptedVaultStore writer = new EncryptedVaultStore(ApplicationProvider.getApplicationContext());
         try {
             writer.replace(expected);
         } finally {
             writer.close();
         }
 
-        EncryptedVaultStore reader = new EncryptedVaultStore(getContext());
+        EncryptedVaultStore reader = new EncryptedVaultStore(ApplicationProvider.getApplicationContext());
         try {
             VaultSnapshot actual = reader.read();
 
@@ -76,7 +90,8 @@ public final class EncryptedVaultStoreTest extends AndroidTestCase {
         }
     }
 
-    public void testReplacementKeepsOnlyLatestSnapshot() {
+    @Test
+    public void replacementKeepsOnlyLatestSnapshot() {
         VaultSnapshot first = sampleSnapshot();
         VaultSnapshot second = new VaultSnapshot(
                 first.getSchemaVersion(),
@@ -86,7 +101,7 @@ public final class EncryptedVaultStoreTest extends AndroidTestCase {
                 first.getTags()
         );
 
-        EncryptedVaultStore store = new EncryptedVaultStore(getContext());
+        EncryptedVaultStore store = new EncryptedVaultStore(ApplicationProvider.getApplicationContext());
         try {
             store.replace(first);
             store.replace(second);
@@ -95,7 +110,7 @@ public final class EncryptedVaultStoreTest extends AndroidTestCase {
             store.close();
         }
 
-        VaultDatabase database = new VaultDatabase(getContext());
+        VaultDatabase database = new VaultDatabase(ApplicationProvider.getApplicationContext());
         try {
             assertEquals(
                     1L,
@@ -109,15 +124,17 @@ public final class EncryptedVaultStoreTest extends AndroidTestCase {
         }
     }
 
-    public void testDatabaseContainsNoCredentialPlaintext() throws Exception {
-        EncryptedVaultStore store = new EncryptedVaultStore(getContext());
+    @Test
+    public void databaseContainsNoCredentialPlaintext() throws Exception {
+        EncryptedVaultStore store = new EncryptedVaultStore(ApplicationProvider.getApplicationContext());
         try {
             store.replace(sampleSnapshot());
         } finally {
             store.close();
         }
 
-        File database = getContext().getDatabasePath(VaultDatabase.DATABASE_NAME);
+        File database = ApplicationProvider.getApplicationContext()
+                .getDatabasePath(VaultDatabase.DATABASE_NAME);
         assertTrue(database.isFile());
         File[] files = database.getParentFile().listFiles();
         assertNotNull(files);
@@ -132,15 +149,16 @@ public final class EncryptedVaultStoreTest extends AndroidTestCase {
         }
     }
 
-    public void testTamperedCiphertextIsRejected() {
-        EncryptedVaultStore store = new EncryptedVaultStore(getContext());
+    @Test
+    public void tamperedCiphertextIsRejected() {
+        EncryptedVaultStore store = new EncryptedVaultStore(ApplicationProvider.getApplicationContext());
         try {
             store.replace(sampleSnapshot());
         } finally {
             store.close();
         }
 
-        VaultDatabase database = new VaultDatabase(getContext());
+        VaultDatabase database = new VaultDatabase(ApplicationProvider.getApplicationContext());
         try {
             EncryptedPayload original = database.read();
             byte[] tampered = original.getCiphertext();
@@ -150,7 +168,7 @@ public final class EncryptedVaultStoreTest extends AndroidTestCase {
             database.close();
         }
 
-        EncryptedVaultStore reader = new EncryptedVaultStore(getContext());
+        EncryptedVaultStore reader = new EncryptedVaultStore(ApplicationProvider.getApplicationContext());
         try {
             try {
                 reader.read();

@@ -1,29 +1,42 @@
 package com.passwordvault.local;
 
-import android.test.ActivityInstrumentationTestCase2;
+import android.app.Instrumentation;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
+import androidx.test.rule.ActivityTestRule;
+
 import com.passwordvault.local.ui.VaultListController;
 
-public final class VaultUiTest extends ActivityInstrumentationTestCase2<MainActivity> {
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+
+@RunWith(AndroidJUnit4.class)
+public final class VaultUiTest {
+    @Rule
+    public final ActivityTestRule<MainActivity> activityRule =
+            new ActivityTestRule<MainActivity>(MainActivity.class, true, false);
+
     private MainActivity activity;
 
-    public VaultUiTest() {
-        super(MainActivity.class);
-    }
-
-    @Override
-    protected void setUp() throws Exception {
-        super.setUp();
-        setActivityInitialTouchMode(true);
+    @Before
+    public void setUp() {
         VaultTestReset.closeApplicationVault(getInstrumentation().getTargetContext());
         getInstrumentation().getTargetContext().deleteDatabase("password_vault.db");
-        activity = getActivity();
+        activity = activityRule.launchActivity(null);
     }
 
-    @Override
-    protected void tearDown() throws Exception {
+    @After
+    public void tearDown() {
         if (activity != null) {
             getInstrumentation().runOnMainSync(new Runnable() {
                 @Override
@@ -35,10 +48,10 @@ public final class VaultUiTest extends ActivityInstrumentationTestCase2<MainActi
         }
         VaultTestReset.closeApplicationVault(getInstrumentation().getTargetContext());
         getInstrumentation().getTargetContext().deleteDatabase("password_vault.db");
-        super.tearDown();
     }
 
-    public void testLaunchesUsablePasswordScreen() {
+    @Test
+    public void launchesUsablePasswordScreen() {
         TextView passwords = activity.findViewById(R.id.nav_passwords);
         TextView taxonomy = activity.findViewById(R.id.nav_taxonomy);
         TextView more = activity.findViewById(R.id.nav_more);
@@ -54,7 +67,12 @@ public final class VaultUiTest extends ActivityInstrumentationTestCase2<MainActi
                 & WindowManager.LayoutParams.FLAG_SECURE) != 0);
     }
 
-    public void testPasswordMaskHasFixedLength() {
+    @Test
+    public void passwordMaskHasFixedLength() {
         assertEquals("••••••••", VaultListController.MASKED_PASSWORD);
+    }
+
+    private static Instrumentation getInstrumentation() {
+        return InstrumentationRegistry.getInstrumentation();
     }
 }

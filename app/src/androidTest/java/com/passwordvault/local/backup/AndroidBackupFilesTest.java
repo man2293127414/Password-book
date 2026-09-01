@@ -1,7 +1,11 @@
 package com.passwordvault.local.backup;
 
 import android.net.Uri;
-import android.test.AndroidTestCase;
+
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -10,10 +14,16 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 
-public final class AndroidBackupFilesTest extends AndroidTestCase {
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+@RunWith(AndroidJUnit4.class)
+public final class AndroidBackupFilesTest {
     private static final Uri URI = Uri.parse("content://password-vault-test/backup.pvlb");
 
-    public void testWritesAndReadsThroughBoundedStreams() throws Exception {
+    @Test
+    public void writesAndReadsThroughBoundedStreams() throws Exception {
         FakeStreams streams = new FakeStreams();
         AndroidBackupFiles files = new AndroidBackupFiles(streams, 32);
         byte[] expected = new byte[] {1, 2, 3, 4, 5};
@@ -25,7 +35,8 @@ public final class AndroidBackupFilesTest extends AndroidTestCase {
         assertFalse(streams.deleted);
     }
 
-    public void testOversizedReadIsRejected() throws Exception {
+    @Test
+    public void oversizedReadIsRejected() throws Exception {
         FakeStreams streams = new FakeStreams();
         streams.readBytes = new byte[17];
         AndroidBackupFiles files = new AndroidBackupFiles(streams, 16);
@@ -38,7 +49,8 @@ public final class AndroidBackupFilesTest extends AndroidTestCase {
         }
     }
 
-    public void testWriteFailureAttemptsToDeletePartialDocument() throws Exception {
+    @Test
+    public void writeFailureAttemptsToDeletePartialDocument() throws Exception {
         FakeStreams streams = new FakeStreams();
         streams.failWrite = true;
         AndroidBackupFiles files = new AndroidBackupFiles(streams, 32);

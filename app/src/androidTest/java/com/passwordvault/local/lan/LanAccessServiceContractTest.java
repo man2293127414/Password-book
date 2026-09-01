@@ -8,22 +8,37 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ServiceInfo;
 import android.os.Build;
-import android.test.AndroidTestCase;
+
+import androidx.test.core.app.ApplicationProvider;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.InputStream;
 import java.util.Arrays;
 
 /** Minimal device-side manifest/service contract; network and permission behavior runs in CI/device QA. */
-public final class LanAccessServiceContractTest extends AndroidTestCase {
-    public void testStartIntentTargetsForegroundService() {
-        Context context = getContext();
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+@RunWith(AndroidJUnit4.class)
+public final class LanAccessServiceContractTest {
+    @Test
+    public void startIntentTargetsForegroundService() {
+        Context context = ApplicationProvider.getApplicationContext();
         Intent intent = LanAccessService.startIntent(context);
         assertEquals(LanAccessService.class.getName(), intent.getComponent().getClassName());
     }
 
-    public void testServiceIsPrivateAndUsesConnectedDeviceForegroundType() throws Exception {
-        ServiceInfo service = getContext().getPackageManager().getServiceInfo(
-                new ComponentName(getContext(), LanAccessService.class),
+    @Test
+    public void serviceIsPrivateAndUsesConnectedDeviceForegroundType() throws Exception {
+        Context context = ApplicationProvider.getApplicationContext();
+        ServiceInfo service = context.getPackageManager().getServiceInfo(
+                new ComponentName(context, LanAccessService.class),
                 0
         );
         assertFalse(service.exported);
@@ -33,9 +48,11 @@ public final class LanAccessServiceContractTest extends AndroidTestCase {
         }
     }
 
-    public void testRequiredPermissionsArePackaged() throws Exception {
-        PackageInfo info = getContext().getPackageManager().getPackageInfo(
-                getContext().getPackageName(),
+    @Test
+    public void requiredPermissionsArePackaged() throws Exception {
+        Context context = ApplicationProvider.getApplicationContext();
+        PackageInfo info = context.getPackageManager().getPackageInfo(
+                context.getPackageName(),
                 PackageManager.GET_PERMISSIONS
         );
         assertNotNull(info.requestedPermissions);
@@ -48,14 +65,16 @@ public final class LanAccessServiceContractTest extends AndroidTestCase {
         ));
     }
 
-    public void testRuntimeCatalogAssetsAreBundledAndNonEmpty() throws Exception {
+    @Test
+    public void runtimeCatalogAssetsAreBundledAndNonEmpty() throws Exception {
         WebAssetCatalog catalog = parseRuntimeCatalog();
         for (String path : catalog.paths()) {
             assertPackagedNonEmpty("web/" + path);
         }
     }
 
-    public void testMetadataAndLicensesArePackagedButExcludedFromRuntimeCatalog() throws Exception {
+    @Test
+    public void metadataAndLicensesArePackagedButExcludedFromRuntimeCatalog() throws Exception {
         WebAssetCatalog catalog = parseRuntimeCatalog();
         for (String path : new String[] {
                 "vendor-manifest.json",
@@ -69,7 +88,8 @@ public final class LanAccessServiceContractTest extends AndroidTestCase {
     }
 
     private WebAssetCatalog parseRuntimeCatalog() throws Exception {
-        InputStream input = getContext().getAssets().open("web/runtime-assets.tsv");
+        InputStream input = ApplicationProvider.getApplicationContext()
+                .getAssets().open("web/runtime-assets.tsv");
         try {
             return WebAssetCatalog.parse(input);
         } finally {
@@ -78,7 +98,7 @@ public final class LanAccessServiceContractTest extends AndroidTestCase {
     }
 
     private void assertPackagedNonEmpty(String path) throws Exception {
-        InputStream input = getContext().getAssets().open(path);
+        InputStream input = ApplicationProvider.getApplicationContext().getAssets().open(path);
         try {
             assertTrue(path + " must be non-empty", input.read() != -1);
         } finally {

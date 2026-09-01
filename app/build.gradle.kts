@@ -4,6 +4,11 @@ plugins {
 
 dependencies {
     implementation("org.nanohttpd:nanohttpd:2.3.1")
+    androidTestImplementation("androidx.test:core:1.6.1")
+    androidTestImplementation("androidx.test:runner:1.6.2")
+    androidTestImplementation("androidx.test:rules:1.6.1")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("junit:junit:4.13.2")
 }
 
 val releaseSigningRequested = gradle.startParameter.taskNames.any { taskName ->
@@ -24,7 +29,7 @@ android {
         targetSdk = 37
         versionCode = 1
         versionName = "0.1.0"
-        testInstrumentationRunner = "android.test.InstrumentationTestRunner"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     val releaseSigningConfig = if (releaseSigningRequested) {
