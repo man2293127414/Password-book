@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">密码记录器</string>
+    <string name="nav_passwords">密码</string>
+    <string name="nav_taxonomy">分类标签</string>
+    <string name="nav_more">更多</string>
+    <string name="search_hint">搜索名称、账号、网址、分类或标签</string>
+    <string name="backup_export">导出加密备份</string>
+    <string name="backup_import">导入加密备份</string>
+    <string name="backup_export_title">导出加密备份</string>
+    <string name="backup_import_title">导入加密备份</string>
+    <string name="backup_password_label">备份密码</string>
+    <string name="backup_password_confirmation_label">确认备份密码</string>
+    <string name="backup_password_hint">输入独立备份密码</string>
+    <string name="backup_password_confirmation_hint">再次输入备份密码</string>
+    <string name="lan_service_channel_name">局域网访问</string>
+    <string name="lan_service_notification_title">局域网访问已开启</string>
+    <string name="lan_service_notification_text">仅在此服务运行期间提供局域网页面</string>
+    <string name="lan_service_stop">停止</string>
+</resources>

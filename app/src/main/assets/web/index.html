@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="referrer" content="no-referrer">
+  <title>密码记录器 · PC 访问</title>
+  <link rel="stylesheet" href="/styles.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "@noble/curves/": "/node_modules/@noble/curves/",
+        "@noble/hashes/": "/node_modules/@noble/hashes/",
+        "@noble/ciphers/": "/node_modules/@noble/ciphers/"
+      }
+    }
+  </script>
+  <script type="module" src="/app.mjs"></script>
+</head>
+<body>
+  <main class="page-shell">
+    <section id="pairing-view" class="pairing-card" aria-labelledby="pairing-title">
+      <div class="brand-mark" aria-hidden="true">密</div>
+      <p class="eyebrow">局域网临时访问</p>
+      <h1 id="pairing-title">密码记录器</h1>
+      <p class="intro">输入手机上显示的六位访问码。页面刷新或连接断开后需要重新配对。</p>
+      <form id="pairing-form" class="stack" novalidate>
+        <label for="access-code">六位访问码</label>
+        <input id="access-code" name="access-code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" aria-describedby="pairing-help pairing-status" required>
+        <p id="pairing-help" class="field-help">访问码仅用于本次连接，不会保存在浏览器中。</p>
+        <button id="connect-button" class="button primary" type="submit">连接手机</button>
+        <p id="pairing-status" class="status" role="status" aria-live="polite">请输入手机显示的访问码</p>
+      </form>
+    </section>
+
+    <section id="vault-view" class="vault-shell" aria-label="密码库" hidden>
+      <div id="disconnect-banner" class="disconnect-panel" role="alert" hidden>
+        <h1>连接已断开</h1>
+        <p>与手机连接已断开，请在手机重新开启 PC 访问</p>
+      </div>
+
+      <div id="vault-content" class="vault-layout">
+        <aside id="sidebar" class="sidebar" aria-label="密码筛选">
+          <div class="sidebar-brand">
+            <span class="brand-mark small" aria-hidden="true">密</span>
+            <span>密码记录器</span>
+          </div>
+          <nav id="filter-navigation" class="filter-navigation" aria-label="分类和标签筛选"></nav>
+          <button id="manage-taxonomy-button" class="button secondary full-width" type="button">管理分类与标签</button>
+          <p class="connection-note"><span class="status-dot" aria-hidden="true"></span>已安全连接手机</p>
+        </aside>
+
+        <section class="vault-main" aria-labelledby="current-filter">
+          <header class="toolbar">
+            <div>
+              <p class="eyebrow">当前视图</p>
+              <h1 id="current-filter">全部密码</h1>
+            </div>
+            <div class="toolbar-actions">
+              <button id="refresh-button" class="button secondary" type="button">刷新</button>
+              <button id="add-credential-button" class="button primary" type="button">新增密码</button>
+            </div>
+          </header>
+
+          <div class="search-row">
+            <label for="search-input">搜索密码</label>
+            <input id="search-input" type="search" autocomplete="off" placeholder="搜索名称、账号、网址、分类或标签">
+          </div>
+
+          <p id="loading-state" class="state-panel" role="status" hidden>正在加载密码库…</p>
+          <p id="empty-state" class="state-panel" hidden>没有符合当前条件的密码记录。</p>
+          <div id="credential-list" class="credential-list" role="table" aria-label="密码记录" aria-colcount="8" aria-live="polite"></div>
+        </section>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="credential-dialog" class="dialog wide" aria-labelledby="credential-dialog-title">
+    <form id="credential-form" class="dialog-body" method="dialog" novalidate>
+      <header class="dialog-header">
+        <div>
+          <p class="eyebrow">密码记录</p>
+          <h2 id="credential-dialog-title">新增密码</h2>
+        </div>
+        <button id="credential-close-button" class="icon-button" type="button" aria-label="关闭密码表单">×</button>
+      </header>
+
+      <div class="form-grid">
+        <div class="field full-span">
+          <label for="credential-name">名称</label>
+          <input id="credential-name" name="name" type="text" autocomplete="off" required>
+        </div>
+        <div class="field">
+          <label for="credential-account">账号</label>
+          <input id="credential-account" name="account" type="text" autocomplete="off">
+        </div>
+        <div class="field">
+          <label for="credential-password">密码</label>
+          <input id="credential-password" name="password" type="password" autocomplete="new-password" required>
+        </div>
+        <div class="field full-span">
+          <label for="credential-url">网址</label>
+          <input id="credential-url" name="url" type="text" inputmode="url" autocomplete="off">
+        </div>
+        <div class="field full-span">
+          <label for="credential-category">分类</label>
+          <select id="credential-category" name="category"></select>
+        </div>
+        <fieldset id="credential-tags" class="field full-span checkbox-group" role="group" aria-labelledby="credential-tags-label">
+          <legend id="credential-tags-label">标签</legend>
+          <div id="credential-tag-options" class="checkbox-options"></div>
+        </fieldset>
+        <div class="field full-span">
+          <label for="credential-notes">备注</label>
+          <textarea id="credential-notes" name="notes" rows="4"></textarea>
+        </div>
+      </div>
+
+      <p id="credential-form-status" class="status error" role="status" aria-live="polite"></p>
+      <footer class="dialog-actions">
+        <button id="credential-cancel-button" class="button secondary" type="button">取消</button>
+        <button id="credential-save-button" class="button primary" type="submit">保存</button>
+      </footer>
+    </form>
+  </dialog>
+
+  <dialog id="taxonomy-dialog" class="dialog wide" aria-labelledby="taxonomy-title">
+    <section class="dialog-body">
+      <header class="dialog-header">
+        <div>
+          <p class="eyebrow">整理密码库</p>
+          <h2 id="taxonomy-title">管理分类与标签</h2>
+        </div>
+        <button id="taxonomy-close-button" class="icon-button" type="button" aria-label="关闭分类与标签管理">×</button>
+      </header>
+
+      <div class="taxonomy-columns">
+        <section aria-labelledby="category-heading">
+          <h3 id="category-heading">分类</h3>
+          <form id="category-create-form" class="inline-create" novalidate>
+            <label for="new-category-name">新分类名称</label>
+            <div class="inline-controls">
+              <input id="new-category-name" type="text" autocomplete="off">
+              <button class="button primary" type="submit">创建</button>
+            </div>
+          </form>
+          <div id="category-list" class="taxonomy-list"></div>
+        </section>
+
+        <section aria-labelledby="tag-heading">
+          <h3 id="tag-heading">标签</h3>
+          <form id="tag-create-form" class="inline-create" novalidate>
+            <label for="new-tag-name">新标签名称</label>
+            <div class="inline-controls">
+              <input id="new-tag-name" type="text" autocomplete="off">
+              <button class="button primary" type="submit">创建</button>
+            </div>
+          </form>
+          <div id="tag-list" class="taxonomy-list"></div>
+        </section>
+      </div>
+      <p id="taxonomy-status" class="status error" role="status" aria-live="polite"></p>
+    </section>
+  </dialog>
+
+  <dialog id="confirm-dialog" class="dialog confirm" aria-labelledby="confirm-title" aria-describedby="confirm-message">
+    <section class="dialog-body">
+      <header class="dialog-header compact">
+        <h2 id="confirm-title">确认操作</h2>
+      </header>
+      <p id="confirm-message"></p>
+      <p id="confirm-status" class="status error" role="status" aria-live="polite"></p>
+      <footer class="dialog-actions">
+        <button id="confirm-cancel-button" class="button secondary" type="button">取消</button>
+        <button id="confirm-button" class="button danger" type="button">删除</button>
+      </footer>
+    </section>
+  </dialog>
+
+  <div id="toast-region" class="toast" role="status" aria-live="polite" aria-atomic="true" hidden></div>
+</body>
+</html>

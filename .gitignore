@@ -1,0 +1,9 @@
+.superpowers/
+.worktrees/
+.gradle/
+/build/
+/app/build/
+local.properties
+*.jks
+*.keystore
+signing.properties

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item name="app_root" type="id" />
+    <item name="content_container" type="id" />
+    <item name="nav_passwords" type="id" />
+    <item name="nav_taxonomy" type="id" />
+    <item name="nav_more" type="id" />
+    <item name="search_input" type="id" />
+    <item name="add_credential" type="id" />
+    <item name="credential_list" type="id" />
+    <item name="export_backup" type="id" />
+    <item name="import_backup" type="id" />
+    <item name="backup_password" type="id" />
+    <item name="backup_password_confirmation" type="id" />
+    <item name="backup_password_confirmation_label" type="id" />
+</resources>

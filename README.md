@@ -47,4 +47,3 @@ sh scripts/test-lan-http.sh
 ```
 
 `.github/workflows/build-apk.yml` 提供手动触发的 GitHub Actions APK 构建流程。远程仓库和签名 secrets 配置完成后，工作流会先运行完整浏览器、核心 Java、LAN HTTP、Android 设备和 lint 检查，再构建及验证签名 APK。本文不代表云构建或真实设备验收已经执行。
-

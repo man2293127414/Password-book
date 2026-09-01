@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "clientPrivate": "B7CNdsund0EQWHulMIea0AgfY891UYsmWHx79HdG0gY",
+  "clientPublic": "BKYdtvz9M4nGtouNSqLFyhPXqg401pgy5EgYSyK8YS2r0sF0SZ4MbNkrVu1yAM7zWXviFQk_P_0cSPLHblESLac",
+  "serverPrivate": "nA_t0pDOdyZEd4veULWGV7IAq8aCZoX4ijgpJNyMnhg",
+  "serverPublic": "BGXayrNM7zDS2kPPl7I_-e4InsoSF7nTAELsAgqVLCbB__4oW7opTjBFbZBoGGx_n7JrhbbzUG5wOa-_g0Pcafw",
+  "runId": "AAECAwQFBgcICQoLDA0ODw",
+  "sharedSecret": "_K77A6ajOj4heLq-EoEAu9tCBJg58A2os1Mjuufm9C8",
+  "handshakeKey": "93b8uYYrjUYRCTKL4i-2U_LCl4K-7mCvKxJd3oh_E50",
+  "clientToServerKey": "_xBG5kKsfnN2rDPBjPjnfK5vuwCpe9Y2cNQe9DuovH4",
+  "serverToClientKey": "IXyAvkkUnVfe4ejZ_Rp9N7K4y8Ff1zeMPbxofz5pyIM",
+  "pairingNonce": "EBESExQVFhcYGRob",
+  "pairingCode": "123456",
+  "pairingCiphertext": "K-oPT9iKq8MQZHtduiu79qEzrfc4Rg",
+  "requestCounter": 1,
+  "requestMethod": "POST",
+  "requestPath": "/api/v1/vault",
+  "sessionId": "session-test-id",
+  "requestPlaintext": "eyJhY3Rpb24iOiJsaXN0In0",
+  "requestCiphertext": "-xQyD6mciRxaQ8pqy_WmzBCfZ0POCBCuCn2D_q9FBq2k"
+}
