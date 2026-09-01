@@ -43,7 +43,7 @@ public final class LanAccessServiceContractTest {
         );
         assertFalse(service.exported);
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            assertTrue((service.foregroundServiceType
+            assertTrue((service.getForegroundServiceType()
                     & ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE) != 0);
         }
     }
