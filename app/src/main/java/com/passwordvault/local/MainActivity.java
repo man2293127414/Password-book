@@ -2,6 +2,7 @@ package com.passwordvault.local;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.annotation.SuppressLint;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.content.ActivityNotFoundException;
@@ -26,6 +27,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
+import android.window.OnBackInvokedCallback;
+import android.window.OnBackInvokedDispatcher;
 import android.widget.ArrayAdapter;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -107,6 +110,7 @@ public final class MainActivity extends Activity {
     private ImportPreview activeImportPreview;
     private AlertDialog activeBackupDialog;
     private volatile boolean destroyed;
+    private OnBackInvokedCallback predictiveBackCallback;
 
     private FrameLayout contentContainer;
     private TextView navPasswords;
@@ -157,6 +161,7 @@ public final class MainActivity extends Activity {
         );
         backupFiles = new AndroidBackupFiles(this);
         backupExecutor = Executors.newSingleThreadExecutor();
+        registerPredictiveBackCallback();
         showPasswords();
     }
 
@@ -191,6 +196,7 @@ public final class MainActivity extends Activity {
     @Override
     protected void onDestroy() {
         lanStatusHandler.removeCallbacks(lanStatusRefresh);
+        unregisterPredictiveBackCallback();
         destroyed = true;
         cancelActiveImportPreview();
         closeVaultAfterBackupWork();
@@ -210,8 +216,13 @@ public final class MainActivity extends Activity {
         }
     }
 
+    @SuppressLint("GestureBackNavigation")
     @Override
     public void onBackPressed() {
+        handleBackNavigation();
+    }
+
+    private void handleBackNavigation() {
         if (screen == Screen.DETAIL) {
             showPasswords();
         } else if (screen == Screen.EDITOR) {
@@ -225,6 +236,26 @@ public final class MainActivity extends Activity {
         } else {
             super.onBackPressed();
         }
+    }
+
+    private void registerPredictiveBackCallback() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) return;
+        predictiveBackCallback = new OnBackInvokedCallback() {
+            @Override
+            public void onBackInvoked() {
+                handleBackNavigation();
+            }
+        };
+        getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+                OnBackInvokedDispatcher.PRIORITY_DEFAULT,
+                predictiveBackCallback
+        );
+    }
+
+    private void unregisterPredictiveBackCallback() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU || predictiveBackCallback == null) return;
+        getOnBackInvokedDispatcher().unregisterOnBackInvokedCallback(predictiveBackCallback);
+        predictiveBackCallback = null;
     }
 
     private void showPasswords() {
